@@ -1,30 +1,17 @@
-FROM maven:3.9.0-eclipse-temurin-17-alpine AS build
+FROM maven:3.8.6-openjdk-17-slim AS build
 
 WORKDIR /app
-
-# Copier les fichiers pom.xml pour résoudre les dépendances Maven indépendamment du code source
 COPY pom.xml .
-RUN mvn dependency:go-offline
+# Cette étape télécharge les dépendances Maven
+RUN mvn dependency:go-offline -B
 
-# Copier le code source
 COPY src ./src
-
-# Compiler et packager l'application
 RUN mvn package -DskipTests
 
-# Créer l'image d'exécution
-FROM eclipse-temurin:17-jre-alpine
+FROM openjdk:17-slim
 
 WORKDIR /app
-
-# Copier le JAR de l'étape de build
 COPY --from=build /app/target/*.jar app.jar
 
-# Variables d'environnement
-ENV JAVA_OPTS=""
-
-# Exposer le port
 EXPOSE 8080
-
-# Commande de démarrage
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: device-service
+  labels:
+    app: device-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: device-service
+  template:
+    metadata:
+      labels:
+        app: device-service
+    spec:
+      containers:
+      - name: device-service
+        image: device-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres:5432/devicedb
+        - name: SPRING_DATASOURCE_USERNAME
+          value: device_user  
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: device_password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: device-service
+spec:
+  selector:
+    app: device-service
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP
