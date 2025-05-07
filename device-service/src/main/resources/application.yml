@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: device-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'git@gitlab.com:telecom-net-manager/infrastructure.git'
+    path: applications/device-service/charts
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+        - 'values-{{ .Values.environment }}.yaml'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
